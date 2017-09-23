@@ -11,7 +11,7 @@ namespace Scrapy
 {
     class web_request
     {
-        public void run_dce()
+        public void download_dce()
         {
             foreach (DateTime dt in lst_request_date_)
             {
@@ -68,13 +68,16 @@ namespace Scrapy
                     Thread.Sleep(1000);
                 }
                 catch (System.Net.WebException ex)
-                { }
+                {
+                    if (handler_ != null)
+                        handler_.status_changed(-1, ex.Message);
+                }
             }
             lst_request_date_.Clear();
             if (handler_ != null)
                 handler_.status_changed(1, "finished...");
         }
-        public void run_czce()
+        public void download_czce()
         {
             foreach (DateTime dt in lst_request_date_)
             {
@@ -119,12 +122,195 @@ namespace Scrapy
                     Thread.Sleep(1000);
                 }
                 catch (System.Net.WebException ex)
-                { }
+                {
+                    if (handler_ != null)
+                        handler_.status_changed(-1, ex.Message);
+                }
             }
             lst_request_date_.Clear();
             if (handler_ != null)
                 handler_.status_changed(1, "finished..."); 
         }
+        public void download_shfe()
+        {
+            foreach (DateTime dt in lst_request_date_)
+            {
+                try
+                {
+                    int y = dt.Year;
+                    int m = dt.Month;
+                    int d = dt.Day;
+                    string url = "http://www.shfe.com.cn/data/dailydata/kx/kx" + string.Format("{0:D4}{1:D2}{2:D2}", y, m, d) + ".dat";
+                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                    request.Referer = "http://www.shfe.com.cn/statements/dataview.html?paramid=kx";
+                    request.Accept = "*/*";
+                    request.Headers["Accept-Language"] = "zh-CN";
+                    request.Headers["Accept-Encoding"] = "gzip,deflate";
+                    request.Headers["Cache-Control"] = "no-cache";
+                    request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063";
+                    request.KeepAlive = true;
+                    request.Method = "GET";
+
+                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                    Stream responseStream = response.GetResponseStream();
+                    //如果http头中接受gzip的话，这里就要判断是否为有压缩，有的话，直接解压缩即可  
+                    if (response.Headers["Content-Encoding"] != null && response.Headers["Content-Encoding"].ToLower().Contains("gzip"))
+                    {
+                        responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
+                    }
+
+                    StreamReader streamReader = new StreamReader(responseStream, Encoding.UTF8);
+                    string retString = streamReader.ReadToEnd();
+                    string file = string.Format("data/mds.shfe.{0:D4}.{1:D2}.{2:D2}.dat", y, m, d);
+                    if (retString.Length > 1000)
+                    {
+                        StreamWriter streamWriter = new StreamWriter(file, false, Encoding.UTF8);
+                        streamWriter.Write(retString);
+                        streamWriter.Close();
+                    }
+                    streamReader.Close();
+                    responseStream.Close();
+
+                    Newtonsoft.Json.JsonTextReader json_reader = new Newtonsoft.Json.JsonTextReader(new StringReader(retString));
+                    StreamWriter outok = new StreamWriter(string.Format("data/mds.shfe.{0:D4}.{1:D2}.{2:D2}.ok.csv", y, m, d), false, Encoding.UTF8);
+                    string line = "";
+                    string lastPropertyName = "";
+                    string startobjstring = "o_curinstrument";
+                    bool startobj = false;
+                    while (json_reader.Read())
+                    {
+                        if (json_reader.Value != null)
+                        {
+                            if (startobj == true && json_reader.Value.ToString() != startobjstring)
+                                break;
+
+                            Console.WriteLine("Token: {0}, Value: {1}", json_reader.TokenType, json_reader.Value);
+                            if (lastPropertyName == "PRODUCTID")
+                            {
+                                string value = json_reader.Value.ToString();
+                                int index = value.IndexOf("_");
+                                if (index == -1)
+                                    continue;
+                                line += value.Substring(0, index);
+                            }
+                            else if (lastPropertyName == "DELIVERYMONTH")
+                            {
+                                if (json_reader.Value.ToString() == "小计")
+                                    continue;
+                                line += json_reader.Value.ToString() + ",";
+                            }
+                            else if (lastPropertyName == "OPENPRICE")
+                            {
+                                line += json_reader.Value.ToString() + ",";
+                            }
+                            else if (lastPropertyName == "HIGHESTPRICE")
+                            {
+                                line += json_reader.Value.ToString() + ",";
+                            }
+                            else if (lastPropertyName == "LOWESTPRICE")
+                            {
+                                line += json_reader.Value.ToString() + ",";
+                            }
+                            else if (lastPropertyName == "VOLUME")
+                            {
+                                line += json_reader.Value.ToString() + ",";
+                            }
+                            else if (lastPropertyName == "OPENINTEREST")
+                            {
+                                line += json_reader.Value.ToString() + ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
+                            }
+                            lastPropertyName = json_reader.Value.ToString();
+                        }
+                        else
+                        {
+                            if (json_reader.TokenType == Newtonsoft.Json.JsonToken.StartObject)
+                            {
+                                startobj = true;
+                                line = string.Format("{0:D4}-{1:D2}-{2:D2} 00:00:00", y, m, d) + ",";
+                            }
+                            else if (json_reader.TokenType == Newtonsoft.Json.JsonToken.EndObject)
+                            {
+                                startobj = false;
+                                if (line.Length > 10)
+                                {
+                                    outok.WriteLine(line);
+                                }
+                            }
+                            Console.WriteLine("Token: {0}", json_reader.TokenType);
+                        }
+                    }
+                    outok.Close();
+                    if (handler_ != null)
+                        handler_.status_changed(0, file);
+
+                    Thread.Sleep(1000);
+                }
+                catch (System.Net.WebException ex)
+                {
+                    if (handler_ != null)
+                        handler_.status_changed(-1, ex.Message);
+                }
+            }
+            lst_request_date_.Clear();
+            if (handler_ != null)
+                handler_.status_changed(1, "finished...");
+        }
+        public void download_cffex()
+        {
+            foreach (DateTime dt in lst_request_date_)
+            {
+                try
+                {
+                    int y = dt.Year;
+                    int m = dt.Month;
+                    int d = dt.Day;
+                    string url = "http://www.cffex.com.cn/sj/hqsj/rtj/" + string.Format("{0:D4}{1:D2}/{2:D2}", y, m, d) + "/index.xml";
+                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                    request.Referer = "www.cffex.com.cn";
+                    request.Accept = "text/html, application/xhtml+xml, image/jxr, */*";
+                    request.Headers["Accept-Language"] = "zh-CN";
+                    request.Headers["Accept-Encoding"] = "gzip,deflate";
+                    request.Headers["Cache-Control"] = "no-cache";
+                    request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063";
+                    request.KeepAlive = true;
+                    request.Method = "GET";
+
+                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                    Stream responseStream = response.GetResponseStream();
+                    //如果http头中接受gzip的话，这里就要判断是否为有压缩，有的话，直接解压缩即可  
+                    if (response.Headers["Content-Encoding"] != null && response.Headers["Content-Encoding"].ToLower().Contains("gzip"))
+                    {
+                        responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
+                    }
+
+                    StreamReader streamReader = new StreamReader(responseStream, Encoding.UTF8);
+                    string retString = streamReader.ReadToEnd();
+                    string file = string.Format("data/mds.cffex.{0:D4}.{1:D2}.{2:D2}.xml", y, m, d);
+                    if (retString.Length > 1000)
+                    {
+                        StreamWriter streamWriter = new StreamWriter(file, false, Encoding.UTF8);
+                        streamWriter.Write(retString);
+                        streamWriter.Close();
+                    }
+                    streamReader.Close();
+                    responseStream.Close();
+
+                    if (handler_ != null)
+                        handler_.status_changed(0, file);
+
+                    Thread.Sleep(1000);
+                }
+                catch (System.Net.WebException ex)
+                {
+                    if (handler_ != null)
+                        handler_.status_changed(-1, ex.Message);
+                }
+            }
+            lst_request_date_.Clear();
+            if (handler_ != null)
+                handler_.status_changed(1, "finished...");
+        }
+
 
         public List<DateTime> lst_request_date_ = new List<DateTime>();
         public Main handler_ = null;
