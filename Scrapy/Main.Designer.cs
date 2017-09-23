@@ -34,11 +34,11 @@
             this.btnCffex = new System.Windows.Forms.Button();
             this.tab = new System.Windows.Forms.TabControl();
             this.tpExcWebMds = new System.Windows.Forms.TabPage();
+            this.pbarExc = new System.Windows.Forms.ProgressBar();
             this.dtpEnd = new System.Windows.Forms.DateTimePicker();
             this.dtpFrom = new System.Windows.Forms.DateTimePicker();
             this.txtStatus = new System.Windows.Forms.TextBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.pbarExc = new System.Windows.Forms.ProgressBar();
             this.tab.SuspendLayout();
             this.tpExcWebMds.SuspendLayout();
             this.SuspendLayout();
@@ -112,6 +112,14 @@
             this.tpExcWebMds.Text = "交易所网页日线数据";
             this.tpExcWebMds.UseVisualStyleBackColor = true;
             // 
+            // pbarExc
+            // 
+            this.pbarExc.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pbarExc.Location = new System.Drawing.Point(3, 375);
+            this.pbarExc.Name = "pbarExc";
+            this.pbarExc.Size = new System.Drawing.Size(740, 23);
+            this.pbarExc.TabIndex = 19;
+            // 
             // dtpEnd
             // 
             this.dtpEnd.Location = new System.Drawing.Point(232, 66);
@@ -128,9 +136,10 @@
             // 
             // txtStatus
             // 
-            this.txtStatus.Location = new System.Drawing.Point(0, 401);
+            this.txtStatus.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.txtStatus.Location = new System.Drawing.Point(3, 398);
             this.txtStatus.Name = "txtStatus";
-            this.txtStatus.Size = new System.Drawing.Size(746, 21);
+            this.txtStatus.Size = new System.Drawing.Size(740, 21);
             this.txtStatus.TabIndex = 16;
             // 
             // tabPage2
@@ -142,13 +151,6 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "tabPage2";
             this.tabPage2.UseVisualStyleBackColor = true;
-            // 
-            // pbarExc
-            // 
-            this.pbarExc.Location = new System.Drawing.Point(3, 372);
-            this.pbarExc.Name = "pbarExc";
-            this.pbarExc.Size = new System.Drawing.Size(743, 23);
-            this.pbarExc.TabIndex = 19;
             // 
             // Main
             // 

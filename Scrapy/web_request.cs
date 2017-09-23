@@ -62,6 +62,7 @@ namespace Scrapy
                     }
                     streamReader.Close();
                     responseStream.Close();
+                    response.Close();
 
                     string[] split = retString.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
                     int rowcount = 0;
@@ -132,7 +133,7 @@ namespace Scrapy
                 catch (System.Net.WebException ex)
                 {
                     if (handler_ != null)
-                        handler_.status_changed(-1, ex.Message);
+                        handler_.status_changed(0, ex.Message);
                 }
             }
             lst_request_date_.Clear();
@@ -177,6 +178,7 @@ namespace Scrapy
                     }
                     streamReader.Close();
                     responseStream.Close();
+                    response.Close();
 
                     string[] split = retString.Split(new string[] {"\n"}, StringSplitOptions.RemoveEmptyEntries);
                     int rowcount = 0;
@@ -213,7 +215,7 @@ namespace Scrapy
                 catch (System.Net.WebException ex)
                 {
                     if (handler_ != null)
-                        handler_.status_changed(-1, ex.Message);
+                        handler_.status_changed(0, ex.Message);
                 }
             }
             lst_request_date_.Clear();
@@ -259,6 +261,7 @@ namespace Scrapy
                     }
                     streamReader.Close();
                     responseStream.Close();
+                    response.Close();
 
                     retString = retString.Replace("\"PRESETTLEMENTPRICE\":\"\"", "\"PRESETTLEMENTPRICE\":0");
                     retString = retString.Replace("\"OPENPRICE\":\"\"", "\"OPENPRICE\":0");
@@ -311,7 +314,7 @@ namespace Scrapy
                 catch (System.Net.WebException ex)
                 {
                     if (handler_ != null)
-                        handler_.status_changed(-1, ex.Message);
+                        handler_.status_changed(0, ex.Message);
                 }
             }
             lst_request_date_.Clear();
@@ -338,8 +341,6 @@ namespace Scrapy
                     request.KeepAlive = true;
                     request.Method = "GET";
                     HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                    if (response.StatusCode == HttpStatusCode.NotFound)
-                        throw new System.Net.WebException("远程服务器返回错误: (404) 未找到。");
                     Stream responseStream = response.GetResponseStream();
                     //如果http头中接受gzip的话，这里就要判断是否为有压缩，有的话，直接解压缩即可  
                     if (response.Headers["Content-Encoding"] != null && response.Headers["Content-Encoding"].ToLower().Contains("gzip"))
@@ -358,6 +359,7 @@ namespace Scrapy
                     }
                     streamReader.Close();
                     responseStream.Close();
+                    response.Close();
 
                     XmlSerializer serializer = new XmlSerializer(typeof(dailydataCollection));
                     dailydataCollection colection = (dailydataCollection)serializer.Deserialize(new StringReader(retString));

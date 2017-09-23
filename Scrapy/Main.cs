@@ -14,19 +14,6 @@ using System.Windows.Forms;
 
 namespace Scrapy
 {
-    public class Account
-    {
-        public string PRODUCTID { get; set; }
-        public string PRODUCTNAME { get; set; }
-        public string DELIVERYMONTH { get; set; }
-        public string OPENPRICE { get; set; }
-        public string HIGHESTPRICE { get; set; }
-        public string LOWESTPRICE { get; set; }
-        public string CLOSEPRICE { get; set; }
-        public string VOLUME { get; set; }
-        public string OPENINTEREST { get; set; }
-    }
-
     public partial class Main : Form
     {
         delegate void SetTextCallback(string text);
