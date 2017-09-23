@@ -8,21 +8,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Data;
+using System.Xml.Serialization;
 namespace Scrapy
 {
-    public class Instrument
-    {
-        public string PRODUCTID { get; set; }
-        public string PRODUCTNAME { get; set; }
-        public string DELIVERYMONTH { get; set; }
-        public string OPENPRICE { get; set; }
-        public string HIGHESTPRICE { get; set; }
-        public string LOWESTPRICE { get; set; }
-        public string CLOSEPRICE { get; set; }
-        public string VOLUME { get; set; }
-        public string OPENINTEREST { get; set; }
-    }
-
     class web_request
     {
         public void download_dce()
@@ -63,21 +51,81 @@ namespace Scrapy
                         responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
                     }
 
-
                     StreamReader streamReader = new StreamReader(responseStream, Encoding.UTF8);
                     string retString = streamReader.ReadToEnd();
-                    string out_file = string.Format("data/mds.dce.{0:D4}.{1:D2}.{2:D2}.dat", y, m, d);
+                    string file = string.Format("data/mds.dce.{0:D4}.{1:D2}.{2:D2}.dat", y, m, d);
                     if (retString.Length > 1000)
                     {
-                        StreamWriter streamWriter = new StreamWriter(out_file, false, Encoding.UTF8);
+                        StreamWriter streamWriter = new StreamWriter(file, false, Encoding.UTF8);
                         streamWriter.Write(retString);
                         streamWriter.Close();
                     }
                     streamReader.Close();
                     responseStream.Close();
 
+                    string[] split = retString.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    int rowcount = 0;
+                    string datetime = string.Format("{0:D4}/{1:D2}/{2:D2} 00:00:00", y, m, d);
+                    StreamWriter csv = new StreamWriter("dce.csv", true, Encoding.Default);
+                    foreach (string line in split)
+                    {
+                        if (++rowcount > 1)
+                        {
+                            string[] items = line.Split(new string[] { "\t" }, StringSplitOptions.RemoveEmptyEntries);
+                            if (items[0].Trim().IndexOf("小计") == -1 && items[0].Trim().IndexOf("总计") == -1)
+                            {
+				                if (items[0].Trim()=="豆一") 
+                                    items[0]="a";
+                                else if (items[0].Trim() == "豆二")
+                                    items[0]="b";
+                                else if (items[0].Trim() == "胶合板")
+                                    items[0]="bb";
+                                else if (items[0].Trim() == "玉米")
+                                    items[0]="c";
+                                else if (items[0].Trim() == "玉米淀粉")
+                                    items[0]="cs";
+                                else if (items[0].Trim() == "纤维板")
+                                    items[0]="fb";
+                                else if (items[0].Trim() == "铁矿石")
+                                    items[0]="i";
+                                else if (items[0].Trim() == "焦炭")
+                                    items[0]="j";
+                                else if (items[0].Trim() == "鸡蛋")
+                                    items[0]="jd";
+                                else if (items[0].Trim() == "焦煤")
+                                    items[0]="jm";
+                                else if (items[0].Trim() == "聚乙烯")
+                                    items[0]="l";
+                                else if (items[0].Trim() == "豆粕")
+                                    items[0]="m";
+                                else if (items[0].Trim() == "棕榈油")
+                                    items[0]="p";
+                                else if (items[0].Trim() == "聚丙烯")
+                                    items[0]="pp";
+                                else if (items[0].Trim() == "聚氯乙烯")
+                                    items[0]="v";
+                                else if (items[0].Trim() == "豆油")
+                                    items[0]="y";
+
+                                Bar bar = new Bar();
+                                bar.symbol = "dce_" + items[0] + items[1].Trim();
+                                bar.time = datetime;
+                                bar.open = Double.Parse(items[2].Trim().Replace(",", ""));
+                                bar.high = Double.Parse(items[3].Trim().Replace(",", ""));
+                                bar.low = Double.Parse(items[4].Trim().Replace(",", ""));
+                                bar.close = Double.Parse(items[5].Trim().Replace(",", ""));
+                                bar.volume = Double.Parse(items[10].Trim().Replace(",", ""));
+                                bar.posistion = Double.Parse(items[11].Trim().Replace(",", ""));
+                                bar.check_price();
+                                if (bar.valid())
+                                    csv.WriteLine(bar.to_string());
+                            }
+                        }
+                    }
+                    csv.Close();
+
                     if (handler_ != null)
-                        handler_.status_changed(0, out_file);
+                        handler_.status_changed(0, file);
 
                     Thread.Sleep(1000);
                 }
@@ -130,6 +178,33 @@ namespace Scrapy
                     streamReader.Close();
                     responseStream.Close();
 
+                    string[] split = retString.Split(new string[] {"\n"}, StringSplitOptions.RemoveEmptyEntries);
+                    int rowcount = 0;
+                    string datetime = string.Format("{0:D4}/{1:D2}/{2:D2} 00:00:00", y, m, d);
+                    StreamWriter csv = new StreamWriter("czce.csv", true, Encoding.Default);
+                    foreach (string line in split)
+                    {
+                        if (++rowcount > 2)
+                        {
+                            string[] items = line.Split(new string[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+                            if (items[0].Trim().IndexOf("小计") == -1 && items[0].Trim().IndexOf("总计") == -1)
+                            {
+                                Bar bar = new Bar();
+                                bar.symbol = "czce_" + items[0].Trim();
+                                bar.time = datetime;
+                                bar.open = Double.Parse(items[2].Trim().Replace(",", ""));
+                                bar.high = Double.Parse(items[3].Trim().Replace(",", ""));
+                                bar.low = Double.Parse(items[4].Trim().Replace(",", ""));
+                                bar.close = Double.Parse(items[5].Trim().Replace(",", ""));
+                                bar.volume = Double.Parse(items[9].Trim().Replace(",", ""));
+                                bar.posistion = Double.Parse(items[10].Trim().Replace(",", ""));
+                                bar.check_price();
+                                if (bar.valid())
+                                    csv.WriteLine(bar.to_string());
+                            }
+                        }
+                    }
+                    csv.Close();
                     if (handler_ != null)
                         handler_.status_changed(0, file);
 
@@ -201,37 +276,33 @@ namespace Scrapy
                     retString += "}";
                     DataSet dataSet = Newtonsoft.Json.JsonConvert.DeserializeObject<DataSet>(retString);
                     DataTable dataTable = dataSet.Tables["o_curinstrument"];
-                    StreamWriter outok = new StreamWriter(string.Format("data/mds.shfe.{0:D4}.{1:D2}.{2:D2}.csv", y, m, d), false, Encoding.UTF8);
-                    string line="";
+                    StreamWriter csv = new StreamWriter("shfe.csv", true, Encoding.UTF8);
                     string datetime = string.Format("{0:D4}/{1:D2}/{2:D2} 00:00:00", y, m, d);
                     foreach (DataRow row in dataTable.Rows)
                     {
                         string product = row["PRODUCTID"].ToString();
                         int indexp = product.IndexOf("_");
-                        if (indexp != -1)
+                        if (indexp != -1 && row["DELIVERYMONTH"].ToString().IndexOf("小计") == -1)
                         {
-                            line = "shfe_" + product.Substring(0, indexp) +
-                                row["DELIVERYMONTH"].ToString() + "," +
-                                datetime + "," +
-                                row["OPENPRICE"].ToString() + "," +
-                                row["HIGHESTPRICE"].ToString() + "," +
-                                row["LOWESTPRICE"].ToString() + "," +
-                                row["CLOSEPRICE"].ToString() + "," +
-                                row["VOLUME"].ToString() + "," +
-                                row["OPENINTEREST"].ToString() + "," +
-                                "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0";
-                            if (row["DELIVERYMONTH"].ToString() != "小计")
-                            {
-                                outok.WriteLine(line);
-                            }
+                            Bar bar = new Bar();
+                            bar.symbol = "shfe_" + product.Substring(0, indexp) + row["DELIVERYMONTH"].ToString();
+                            bar.time = datetime;
+                            bar.open = Double.Parse(row["OPENPRICE"].ToString().Trim());
+                            bar.high = Double.Parse(row["HIGHESTPRICE"].ToString().Trim());
+                            bar.low = Double.Parse(row["LOWESTPRICE"].ToString().Trim());
+                            bar.close = Double.Parse(row["CLOSEPRICE"].ToString().Trim());
+                            bar.volume = Double.Parse(row["VOLUME"].ToString().Trim());
+                            bar.posistion = Double.Parse(row["OPENINTEREST"].ToString().Trim());
+                            bar.check_price();
+                            if (bar.valid())
+                                csv.WriteLine(bar.to_string());
                         }
                         else
                         {
                             Console.WriteLine(product);
                         }
                     }
-
-                    outok.Close();
+                    csv.Close();
                     if (handler_ != null)
                         handler_.status_changed(0, file);
 
@@ -266,8 +337,9 @@ namespace Scrapy
                     request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063";
                     request.KeepAlive = true;
                     request.Method = "GET";
-
                     HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                        throw new System.Net.WebException("远程服务器返回错误: (404) 未找到。");
                     Stream responseStream = response.GetResponseStream();
                     //如果http头中接受gzip的话，这里就要判断是否为有压缩，有的话，直接解压缩即可  
                     if (response.Headers["Content-Encoding"] != null && response.Headers["Content-Encoding"].ToLower().Contains("gzip"))
@@ -287,15 +359,36 @@ namespace Scrapy
                     streamReader.Close();
                     responseStream.Close();
 
+                    XmlSerializer serializer = new XmlSerializer(typeof(dailydataCollection));
+                    dailydataCollection colection = (dailydataCollection)serializer.Deserialize(new StringReader(retString));
+                    //serializer.Serialize(Console.Out, colection);
+                    string datetime = string.Format("{0:D4}/{1:D2}/{2:D2} 00:00:00", y, m, d);
+                    StreamWriter csv = new StreamWriter(string.Format("cffex.csv", y, m, d), true, Encoding.UTF8);
+                    for (int i = 0; i < colection.dailydatas.Length; i++)
+                    {
+                        Bar bar = new Bar();
+                        bar.symbol = "cffex_" + colection.dailydatas[i].instrumentid.Trim();
+                        bar.time = datetime;
+                        bar.open = Double.Parse(colection.dailydatas[i].openprice.Trim() == "" ? "0" : colection.dailydatas[i].openprice.Trim());
+                        bar.high = Double.Parse(colection.dailydatas[i].highestprice.Trim() == "" ? "0" : colection.dailydatas[i].highestprice.Trim());
+                        bar.low = Double.Parse(colection.dailydatas[i].lowestprice.Trim() == "" ? "0" : colection.dailydatas[i].lowestprice.Trim());
+                        bar.close = Double.Parse(colection.dailydatas[i].closeprice.Trim() == "" ? "0" : colection.dailydatas[i].closeprice.Trim());
+                        bar.volume = Double.Parse(colection.dailydatas[i].volume.Trim() == "" ? "0" : colection.dailydatas[i].volume.Trim());
+                        bar.posistion = Double.Parse(colection.dailydatas[i].openinterest.Trim() == "" ? "0" : colection.dailydatas[i].openinterest.Trim());
+                        bar.check_price();
+                        if (bar.valid())
+                            csv.WriteLine(bar.to_string());
+                    }
+                    csv.Close();
                     if (handler_ != null)
                         handler_.status_changed(0, file);
 
                     Thread.Sleep(1000);
                 }
-                catch (System.Net.WebException ex)
+                catch (System.InvalidOperationException ioe)
                 {
                     if (handler_ != null)
-                        handler_.status_changed(-1, ex.Message);
+                        handler_.status_changed(0, ioe.Message);
                 }
             }
             lst_request_date_.Clear();

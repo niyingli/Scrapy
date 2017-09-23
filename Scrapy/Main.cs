@@ -35,28 +35,6 @@ namespace Scrapy
         public Main()
         {
             InitializeComponent();
-
-            /*StreamReader streamReader = new StreamReader(@"D:\develop\Scrapy\Scrapy\bin\Debug\data\mds.shfe.2017.09.21.dat", Encoding.UTF8);
-            string retString = streamReader.ReadToEnd();
-            retString = retString.Replace("\"PRESETTLEMENTPRICE\":\"\"", "\"PRESETTLEMENTPRICE\":0");
-            retString = retString.Replace("\"OPENPRICE\":\"\"", "\"OPENPRICE\":0");
-            retString = retString.Replace("\"HIGHESTPRICE\":\"\"", "\"HIGHESTPRICE\":0");
-            retString = retString.Replace("\"LOWESTPRICE\":\"\"", "\"LOWESTPRICE\":0");
-            retString = retString.Replace("\"CLOSEPRICE\":\"\"", "\"CLOSEPRICE\":0");
-            retString = retString.Replace("\"SETTLEMENTPRICE\":\"\"", "\"SETTLEMENTPRICE\":0");
-            retString = retString.Replace("\"ZD1_CHG\":\"\"", "\"ZD1_CHG\":0");
-            retString = retString.Replace("\"ZD2_CHG\":\"\"", "\"ZD2_CHG\":0");
-            retString = retString.Replace("\"OPENINTEREST\":\"\"", "\"OPENINTEREST\":0");
-            retString = retString.Replace("\"OPENINTERESTCHG\":\"\"", "\"OPENINTERESTCHG\":0");
-            retString = retString.Replace("\"AVGPRICE\":\"\"", "\"AVGPRICE\":0");
-            int index = retString.IndexOf("o_curproduct");
-            retString = retString.Substring(0, index - 2);
-            retString += "}";
-            DataSet dataSet = Newtonsoft.Json.JsonConvert.DeserializeObject<DataSet>(retString);
-
-            DataTable dataTable = dataSet.Tables["o_curinstrument"];
-
-            Console.WriteLine(dataTable.Rows.Count);*/
         }
 
         public void status_changed(int status, string message)
@@ -76,8 +54,13 @@ namespace Scrapy
                     this.Invoke(d, new object[] { pbarExc.Value + 1 });
                 }
             }
+
+            using (StreamWriter sr = new StreamWriter("scrapy.log", true, Encoding.UTF8)) 
+            {
+                sr.WriteLine(DateTime.Now.ToString("yyyymmdd HH:MM:ss") + " " + message);
+            }
         }
-        private void SetStatusText(string text)
+        private void SetStatusText(string text) 
         {
             // InvokeRequired required compares the thread ID of the
             // calling thread to the thread ID of the creating thread.
@@ -127,6 +110,7 @@ namespace Scrapy
             }
             pbarExc.Minimum = 0;
             pbarExc.Maximum = run_days;
+            pbarExc.Value = 0;
 
             txtStatus.Text = "Run...";
             ThreadStart start = null;
