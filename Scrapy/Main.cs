@@ -14,6 +14,19 @@ using System.Windows.Forms;
 
 namespace Scrapy
 {
+    public class Account
+    {
+        public string PRODUCTID { get; set; }
+        public string PRODUCTNAME { get; set; }
+        public string DELIVERYMONTH { get; set; }
+        public string OPENPRICE { get; set; }
+        public string HIGHESTPRICE { get; set; }
+        public string LOWESTPRICE { get; set; }
+        public string CLOSEPRICE { get; set; }
+        public string VOLUME { get; set; }
+        public string OPENINTEREST { get; set; }
+    }
+
     public partial class Main : Form
     {
         delegate void SetTextCallback(string text);
@@ -22,6 +35,28 @@ namespace Scrapy
         public Main()
         {
             InitializeComponent();
+
+            /*StreamReader streamReader = new StreamReader(@"D:\develop\Scrapy\Scrapy\bin\Debug\data\mds.shfe.2017.09.21.dat", Encoding.UTF8);
+            string retString = streamReader.ReadToEnd();
+            retString = retString.Replace("\"PRESETTLEMENTPRICE\":\"\"", "\"PRESETTLEMENTPRICE\":0");
+            retString = retString.Replace("\"OPENPRICE\":\"\"", "\"OPENPRICE\":0");
+            retString = retString.Replace("\"HIGHESTPRICE\":\"\"", "\"HIGHESTPRICE\":0");
+            retString = retString.Replace("\"LOWESTPRICE\":\"\"", "\"LOWESTPRICE\":0");
+            retString = retString.Replace("\"CLOSEPRICE\":\"\"", "\"CLOSEPRICE\":0");
+            retString = retString.Replace("\"SETTLEMENTPRICE\":\"\"", "\"SETTLEMENTPRICE\":0");
+            retString = retString.Replace("\"ZD1_CHG\":\"\"", "\"ZD1_CHG\":0");
+            retString = retString.Replace("\"ZD2_CHG\":\"\"", "\"ZD2_CHG\":0");
+            retString = retString.Replace("\"OPENINTEREST\":\"\"", "\"OPENINTEREST\":0");
+            retString = retString.Replace("\"OPENINTERESTCHG\":\"\"", "\"OPENINTERESTCHG\":0");
+            retString = retString.Replace("\"AVGPRICE\":\"\"", "\"AVGPRICE\":0");
+            int index = retString.IndexOf("o_curproduct");
+            retString = retString.Substring(0, index - 2);
+            retString += "}";
+            DataSet dataSet = Newtonsoft.Json.JsonConvert.DeserializeObject<DataSet>(retString);
+
+            DataTable dataTable = dataSet.Tables["o_curinstrument"];
+
+            Console.WriteLine(dataTable.Rows.Count);*/
         }
 
         public void status_changed(int status, string message)

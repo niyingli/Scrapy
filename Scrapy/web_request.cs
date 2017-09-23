@@ -7,8 +7,22 @@ using System.Threading.Tasks;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
+using System.Data;
 namespace Scrapy
 {
+    public class Instrument
+    {
+        public string PRODUCTID { get; set; }
+        public string PRODUCTNAME { get; set; }
+        public string DELIVERYMONTH { get; set; }
+        public string OPENPRICE { get; set; }
+        public string HIGHESTPRICE { get; set; }
+        public string LOWESTPRICE { get; set; }
+        public string CLOSEPRICE { get; set; }
+        public string VOLUME { get; set; }
+        public string OPENINTEREST { get; set; }
+    }
+
     class web_request
     {
         public void download_dce()
@@ -52,7 +66,7 @@ namespace Scrapy
 
                     StreamReader streamReader = new StreamReader(responseStream, Encoding.UTF8);
                     string retString = streamReader.ReadToEnd();
-                    string out_file = string.Format("data/mds.dce.{0:D4}.{1:D2}.{2:D2}.csv", y, m, d);
+                    string out_file = string.Format("data/mds.dce.{0:D4}.{1:D2}.{2:D2}.dat", y, m, d);
                     if (retString.Length > 1000)
                     {
                         StreamWriter streamWriter = new StreamWriter(out_file, false, Encoding.UTF8);
@@ -106,7 +120,7 @@ namespace Scrapy
 
                     StreamReader streamReader = new StreamReader(responseStream, Encoding.Default);
                     string retString = streamReader.ReadToEnd();
-                    string file = string.Format("data/mds.czce.{0:D4}.{1:D2}.{2:D2}.csv", y, m, d);
+                    string file = string.Format("data/mds.czce.{0:D4}.{1:D2}.{2:D2}.dat", y, m, d);
                     if (retString.Length > 1000)
                     {
                         StreamWriter streamWriter = new StreamWriter(file, false, Encoding.Default);
@@ -171,74 +185,52 @@ namespace Scrapy
                     streamReader.Close();
                     responseStream.Close();
 
-                    Newtonsoft.Json.JsonTextReader json_reader = new Newtonsoft.Json.JsonTextReader(new StringReader(retString));
-                    StreamWriter outok = new StreamWriter(string.Format("data/mds.shfe.{0:D4}.{1:D2}.{2:D2}.ok.csv", y, m, d), false, Encoding.UTF8);
-                    string line = "";
-                    string lastPropertyName = "";
-                    string startobjstring = "o_curinstrument";
-                    bool startobj = false;
-                    while (json_reader.Read())
+                    retString = retString.Replace("\"PRESETTLEMENTPRICE\":\"\"", "\"PRESETTLEMENTPRICE\":0");
+                    retString = retString.Replace("\"OPENPRICE\":\"\"", "\"OPENPRICE\":0");
+                    retString = retString.Replace("\"HIGHESTPRICE\":\"\"", "\"HIGHESTPRICE\":0");
+                    retString = retString.Replace("\"LOWESTPRICE\":\"\"", "\"LOWESTPRICE\":0");
+                    retString = retString.Replace("\"CLOSEPRICE\":\"\"", "\"CLOSEPRICE\":0");
+                    retString = retString.Replace("\"SETTLEMENTPRICE\":\"\"", "\"SETTLEMENTPRICE\":0");
+                    retString = retString.Replace("\"ZD1_CHG\":\"\"", "\"ZD1_CHG\":0");
+                    retString = retString.Replace("\"ZD2_CHG\":\"\"", "\"ZD2_CHG\":0");
+                    retString = retString.Replace("\"OPENINTEREST\":\"\"", "\"OPENINTEREST\":0");
+                    retString = retString.Replace("\"OPENINTERESTCHG\":\"\"", "\"OPENINTERESTCHG\":0");
+                    retString = retString.Replace("\"AVGPRICE\":\"\"", "\"AVGPRICE\":0");
+                    int index = retString.IndexOf("o_curproduct");
+                    retString = retString.Substring(0, index - 2);
+                    retString += "}";
+                    DataSet dataSet = Newtonsoft.Json.JsonConvert.DeserializeObject<DataSet>(retString);
+                    DataTable dataTable = dataSet.Tables["o_curinstrument"];
+                    StreamWriter outok = new StreamWriter(string.Format("data/mds.shfe.{0:D4}.{1:D2}.{2:D2}.csv", y, m, d), false, Encoding.UTF8);
+                    string line="";
+                    string datetime = string.Format("{0:D4}/{1:D2}/{2:D2} 00:00:00", y, m, d);
+                    foreach (DataRow row in dataTable.Rows)
                     {
-                        if (json_reader.Value != null)
+                        string product = row["PRODUCTID"].ToString();
+                        int indexp = product.IndexOf("_");
+                        if (indexp != -1)
                         {
-                            if (startobj == true && json_reader.Value.ToString() != startobjstring)
-                                break;
-
-                            Console.WriteLine("Token: {0}, Value: {1}", json_reader.TokenType, json_reader.Value);
-                            if (lastPropertyName == "PRODUCTID")
+                            line = "shfe_" + product.Substring(0, indexp) +
+                                row["DELIVERYMONTH"].ToString() + "," +
+                                datetime + "," +
+                                row["OPENPRICE"].ToString() + "," +
+                                row["HIGHESTPRICE"].ToString() + "," +
+                                row["LOWESTPRICE"].ToString() + "," +
+                                row["CLOSEPRICE"].ToString() + "," +
+                                row["VOLUME"].ToString() + "," +
+                                row["OPENINTEREST"].ToString() + "," +
+                                "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0";
+                            if (row["DELIVERYMONTH"].ToString() != "小计")
                             {
-                                string value = json_reader.Value.ToString();
-                                int index = value.IndexOf("_");
-                                if (index == -1)
-                                    continue;
-                                line += value.Substring(0, index);
+                                outok.WriteLine(line);
                             }
-                            else if (lastPropertyName == "DELIVERYMONTH")
-                            {
-                                if (json_reader.Value.ToString() == "小计")
-                                    continue;
-                                line += json_reader.Value.ToString() + ",";
-                            }
-                            else if (lastPropertyName == "OPENPRICE")
-                            {
-                                line += json_reader.Value.ToString() + ",";
-                            }
-                            else if (lastPropertyName == "HIGHESTPRICE")
-                            {
-                                line += json_reader.Value.ToString() + ",";
-                            }
-                            else if (lastPropertyName == "LOWESTPRICE")
-                            {
-                                line += json_reader.Value.ToString() + ",";
-                            }
-                            else if (lastPropertyName == "VOLUME")
-                            {
-                                line += json_reader.Value.ToString() + ",";
-                            }
-                            else if (lastPropertyName == "OPENINTEREST")
-                            {
-                                line += json_reader.Value.ToString() + ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
-                            }
-                            lastPropertyName = json_reader.Value.ToString();
                         }
                         else
                         {
-                            if (json_reader.TokenType == Newtonsoft.Json.JsonToken.StartObject)
-                            {
-                                startobj = true;
-                                line = string.Format("{0:D4}-{1:D2}-{2:D2} 00:00:00", y, m, d) + ",";
-                            }
-                            else if (json_reader.TokenType == Newtonsoft.Json.JsonToken.EndObject)
-                            {
-                                startobj = false;
-                                if (line.Length > 10)
-                                {
-                                    outok.WriteLine(line);
-                                }
-                            }
-                            Console.WriteLine("Token: {0}", json_reader.TokenType);
+                            Console.WriteLine(product);
                         }
                     }
+
                     outok.Close();
                     if (handler_ != null)
                         handler_.status_changed(0, file);
@@ -285,7 +277,7 @@ namespace Scrapy
 
                     StreamReader streamReader = new StreamReader(responseStream, Encoding.UTF8);
                     string retString = streamReader.ReadToEnd();
-                    string file = string.Format("data/mds.cffex.{0:D4}.{1:D2}.{2:D2}.xml", y, m, d);
+                    string file = string.Format("data/mds.cffex.{0:D4}.{1:D2}.{2:D2}.dat", y, m, d);
                     if (retString.Length > 1000)
                     {
                         StreamWriter streamWriter = new StreamWriter(file, false, Encoding.UTF8);
