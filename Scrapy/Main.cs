@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,6 +12,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Serialization;
+
 
 namespace Scrapy
 {
@@ -20,7 +23,7 @@ namespace Scrapy
         delegate void SetValueCallback(int value);
 
         public Main()
-        {
+        {            
             InitializeComponent();
         }
 
@@ -130,6 +133,12 @@ namespace Scrapy
         private void btnCffex_Click(object sender, EventArgs e)
         {
             do_work("cffex");
+        }
+
+        private void btnDhqhCommition_Click(object sender, EventArgs e)
+        {
+            dhqh_commition dhqh = new dhqh_commition();
+            dhqh.run();
         }
     }
 }

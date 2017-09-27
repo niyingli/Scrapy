@@ -398,6 +398,34 @@ namespace Scrapy
                 handler_.status_changed(1, "finished...");
         }
 
+        public string download_json(string host, string refere, string url)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Host = host;
+            request.Referer = refere;
+            request.Accept = "application/json, text/plain, */*";
+            request.Headers["Accept-Language"] = "zh-CN";
+            request.Headers["Accept-Encoding"] = "gzip, deflate, br";
+            request.Headers["Cache-Control"] = "no-cache";
+            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063";
+            request.KeepAlive = true;
+            request.Method = "GET";
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream responseStream = response.GetResponseStream();
+            //如果http头中接受gzip的话，这里就要判断是否为有压缩，有的话，直接解压缩即可  
+            if (response.Headers["Content-Encoding"] != null && response.Headers["Content-Encoding"].ToLower().Contains("gzip"))
+            {
+                responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
+            }
+
+            StreamReader streamReader = new StreamReader(responseStream, Encoding.UTF8);
+            string retString = streamReader.ReadToEnd();
+            streamReader.Close();
+            responseStream.Close();
+            response.Close();
+
+            return retString;
+        }
 
         public List<DateTime> lst_request_date_ = new List<DateTime>();
         public Main handler_ = null;

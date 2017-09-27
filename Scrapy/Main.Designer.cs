@@ -39,8 +39,12 @@
             this.dtpFrom = new System.Windows.Forms.DateTimePicker();
             this.txtStatus = new System.Windows.Forms.TextBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.txtDhqhCommistion = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.btnDhqhCommition = new System.Windows.Forms.Button();
             this.tab.SuspendLayout();
             this.tpExcWebMds.SuspendLayout();
+            this.tabPage2.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnCzce
@@ -55,7 +59,7 @@
             // 
             // btnShfe
             // 
-            this.btnShfe.Location = new System.Drawing.Point(150, 146);
+            this.btnShfe.Location = new System.Drawing.Point(247, 146);
             this.btnShfe.Name = "btnShfe";
             this.btnShfe.Size = new System.Drawing.Size(75, 23);
             this.btnShfe.TabIndex = 1;
@@ -65,7 +69,7 @@
             // 
             // btnDce
             // 
-            this.btnDce.Location = new System.Drawing.Point(248, 145);
+            this.btnDce.Location = new System.Drawing.Point(150, 146);
             this.btnDce.Name = "btnDce";
             this.btnDce.Size = new System.Drawing.Size(75, 23);
             this.btnDce.TabIndex = 2;
@@ -75,7 +79,7 @@
             // 
             // btnCffex
             // 
-            this.btnCffex.Location = new System.Drawing.Point(349, 144);
+            this.btnCffex.Location = new System.Drawing.Point(348, 146);
             this.btnCffex.Name = "btnCffex";
             this.btnCffex.Size = new System.Drawing.Size(75, 23);
             this.btnCffex.TabIndex = 3;
@@ -144,13 +148,43 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.btnDhqhCommition);
+            this.tabPage2.Controls.Add(this.label1);
+            this.tabPage2.Controls.Add(this.txtDhqhCommistion);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage2.Size = new System.Drawing.Size(746, 422);
             this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "tabPage2";
+            this.tabPage2.Text = "手续费";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // txtDhqhCommistion
+            // 
+            this.txtDhqhCommistion.Location = new System.Drawing.Point(75, 19);
+            this.txtDhqhCommistion.Name = "txtDhqhCommistion";
+            this.txtDhqhCommistion.Size = new System.Drawing.Size(393, 21);
+            this.txtDhqhCommistion.TabIndex = 0;
+            this.txtDhqhCommistion.Text = "https://www.cesfutures.com/RESTfull/pz/sxf/list.json";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(28, 22);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(29, 12);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "东航";
+            // 
+            // btnDhqhCommition
+            // 
+            this.btnDhqhCommition.Location = new System.Drawing.Point(474, 19);
+            this.btnDhqhCommition.Name = "btnDhqhCommition";
+            this.btnDhqhCommition.Size = new System.Drawing.Size(75, 23);
+            this.btnDhqhCommition.TabIndex = 2;
+            this.btnDhqhCommition.Text = "获取";
+            this.btnDhqhCommition.UseVisualStyleBackColor = true;
+            this.btnDhqhCommition.Click += new System.EventHandler(this.btnDhqhCommition_Click);
             // 
             // Main
             // 
@@ -163,6 +197,8 @@
             this.tab.ResumeLayout(false);
             this.tpExcWebMds.ResumeLayout(false);
             this.tpExcWebMds.PerformLayout();
+            this.tabPage2.ResumeLayout(false);
+            this.tabPage2.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -180,6 +216,9 @@
         private System.Windows.Forms.DateTimePicker dtpEnd;
         private System.Windows.Forms.DateTimePicker dtpFrom;
         private System.Windows.Forms.ProgressBar pbarExc;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox txtDhqhCommistion;
+        private System.Windows.Forms.Button btnDhqhCommition;
     }
 }
 
