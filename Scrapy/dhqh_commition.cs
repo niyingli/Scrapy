@@ -40,7 +40,7 @@ namespace Scrapy
                     if (Double.Parse(comm.closeratiobyvolume) > 0.1)
                         line += comm.closeratiobyvolume + ",";
                     else
-                        line += comm.closetodayratiobymoney + ",";
+                        line += comm.closeratiobymoney + ",";
                     if (Double.Parse(comm.closetodayratiobyvolume) > 0.1)
                         line += comm.closetodayratiobyvolume + ",";
                     else
