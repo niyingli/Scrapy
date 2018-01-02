@@ -47,11 +47,22 @@ namespace Scrapy
                         line += comm.closetodayratiobymoney + ",";
                     list.Add(line);
                 }
-                using (StreamWriter sw = new StreamWriter("./all_symbol_commission.csv"))
+                string file_name = "./all_symbol_commission.csv";
+                using (StreamWriter sw = new StreamWriter(file_name))
                 {
                     sw.WriteLine("品种,开仓,平仓,平今仓");
                     foreach (string line in list)
                         sw.WriteLine(line);
+                }
+                // 备份
+                if (File.Exists(file_name))
+                {
+                    string folder = "./commission";
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    string new_name = folder + "/" + DateTime.Now.ToString("yyyyMMdd") + ".csv";
+                    File.Copy(file_name, new_name);
                 }
             }
 
